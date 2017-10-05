@@ -20,34 +20,38 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-.set CR0_PE_ON,             0x1
+#include <segment.h>
+
+.set CR0_PE,             0x1
 
 .section .entry
 
+.code16
 .globl _start
 _start:
     cli
     cld
     
-    mov $0x0 %ds
-    mov $0x0 %es
-    mov $0x0 %ss
+    xor %ax, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %ss
 
 setA20.1:
-    in $0x64 %al
-    test $0x2 %al
+    in $0x64, %al
+    test $0x2, %al
     jnz setA20.1
 
-    mov $0xd1 %al
-    out %al $0x64
+    mov $0xd1, %al
+    out %al, $0x64
 
 setA20.2:
-    in $0x64 %al
-    test $0x2 %al
+    in $0x64, %al
+    test $0x2, %al
     jnz setA20.2
 
-    mov $0xdf %al
-    out %al $0x60
+    mov $0xdf, %al
+    out %al, $0x60
 
     lgdt gdtr
     mov	%cr0, %eax
@@ -56,19 +60,23 @@ setA20.2:
 
     ljmp $(CODE_SEG<<3), $bootasm
 
+.code32
 .text
 
 bootasm:
-    mov $(DATA_SEG<<3), %ds
-    mov $(DATA_SEG<<3), %ss
+    mov $(DATA_SEG<<3), %ax
+    mov %ax, %ds
+    mov %ax, %ss
 
     mov $STACK_TOP, %esp
     call bootmain
 
+.data
+
 gdt:
     SEG_NULL
     SET_SEG(0xa,0x0,0xffffffff)
-    SET_SEG(ox2,0x0,0xffffffff)
+    SET_SEG(0x2,0x0,0xffffffff)
 
 gdtr:
     .word  0x17

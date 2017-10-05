@@ -31,7 +31,7 @@ ENTRY(_start)
 
 SECTIONS
 {
-    .=0x100000
+    . = 0x100000;
     .text : {
         PROVIDE(STACK_TOP = .);
         *(.text);
