@@ -49,3 +49,12 @@ void outl(uint16_t port, uint8_t data)
 {
 }
 
+static inline
+void insb(int port, void *addr, int cnt)
+{
+	asm volatile(
+		"rep insl"
+		: "+D"(addr), "+c"(cnt)
+		: "d"(port)
+		: "memory", "cc");
+}

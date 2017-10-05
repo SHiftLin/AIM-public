@@ -24,4 +24,8 @@
 
 .globl _start
 _start:
+    cli
+    cld
 
+    mov $STACK_TOP, %esp
+    call master_early_init

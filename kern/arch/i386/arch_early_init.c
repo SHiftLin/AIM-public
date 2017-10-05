@@ -25,6 +25,5 @@
 
 void arch_early_init(void)
 {
-
+    
 }
-
