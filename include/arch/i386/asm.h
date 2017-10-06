@@ -60,7 +60,7 @@ void outl(uint16_t port, uint8_t data)
 }
 
 static inline
-void insb(int port, void *addr, int cnt)
+void insl(int port, void *addr, int cnt)
 {
 	asm volatile(
 		"rep insl"
