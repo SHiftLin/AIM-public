@@ -26,6 +26,7 @@
 #include <asm.h>
 
 #define ELF_BUF_SIZE 512
+#define SECTOR_SIZE 512
 
 void *elf_buf[ELF_BUF_SIZE];
 
@@ -59,7 +60,7 @@ uint32_t get_kernel_base()
 
 __noreturn void bootmain(void)
 {
-	uint32_t base = get_kernel_base();
+	uint32_t base = get_kernel_base()*SECTOR_SIZE;
 	void (*entry)(void);
 	elf_hdr *elf = (elf_hdr *)elf_buf;
 
