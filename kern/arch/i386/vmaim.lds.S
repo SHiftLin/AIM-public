@@ -43,9 +43,7 @@ SECTIONS
         *(.data);
     }
     .bss : {
-        PROVIDE(bss_start = .);
         *(.bss);
-        PROVIDE(bss_end = .);
     }
     /DISCARD/ : {
         *(.eh_frame);
