@@ -28,9 +28,8 @@ _start:
     cld
 
     mov $STACK_TOP, %esp
-    xor	%eax, %eax
-	push	%eax
-	push	%eax
-	mov	%esp, %ebp
+    mov %esp, %eax
+    subl $0x8, %eax
+    mov %eax, %ebp
 
     call master_early_init
