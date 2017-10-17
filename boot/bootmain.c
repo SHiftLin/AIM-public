@@ -23,10 +23,67 @@
 #include <sys/types.h>
 #include <aim/boot.h>
 #include <elf.h>
+#include <asm.h>
 
-__noreturn
-void bootmain(void)
+#define ELF_BUF_SIZE 1024
+#define SECTOR_SIZE 512
+
+void *elf_buf[ELF_BUF_SIZE];
+
+void waitdisk(void)
 {
-	while (1);
+	while ((inb(0x1F7) & 0xC0) != 0x40)
+		;
 }
 
+void readsect(void *buf, uint32_t lba)
+{
+	waitdisk();
+	outb(0x1F2, 1);
+	outb(0x1F3, lba);
+	outb(0x1F4, lba >> 8);
+	outb(0x1F5, lba >> 16);
+	outb(0x1F6, (lba >> 24) | 0xE0);
+	outb(0x1F7, 0x20);
+
+	waitdisk();
+	insl(0x1F0, buf, SECTOR_SIZE / 4);
+}
+
+void readseg(void *pa, uint32_t cnt, uint32_t offset)
+{
+	void *epa = pa + cnt;
+	pa -= offset % SECTOR_SIZE;
+	offset = offset / SECTOR_SIZE;
+	for (; pa < epa; pa += SECTOR_SIZE, offset++)
+		readsect(pa, offset);
+}
+
+uint32_t get_kernel_base(int n)
+{
+	uint32_t base = 0;
+	int i = 0;
+	for (i = 0; i < 4; i++)
+		base |= (mbr[446 + 8 + i + (n - 1) * 16] << (i * 8));
+	return base;
+}
+
+__noreturn void bootmain(void)
+{
+	uint32_t base = get_kernel_base(2) * SECTOR_SIZE;
+	void (*entry)(void);
+	elf_hdr *elf = (elf_hdr *)elf_buf;
+
+	readseg(elf, ELF_BUF_SIZE, base);
+	Elf32_Half cnt = elf->e_phnum, i = 0;
+	elf_phdr *ph = (elf_phdr *)((void *)elf + elf->e_phoff);
+	for (i = 0; i < cnt; i++, ph++)
+	{
+		void *pa = (void *)ph->p_vaddr;
+		readseg(pa, ph->p_filesz, base + ph->p_offset);
+	}
+	entry = (void (*)(void))elf->e_entry;
+	entry();
+	while (1)
+		;
+}

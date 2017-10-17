@@ -29,3 +29,25 @@
 
 ENTRY(_start)
 
+SECTIONS
+{
+    . = 0x1000000;
+    .text : {
+        PROVIDE(STACK_TOP = .);
+        *(.text);
+    }
+    .rodata : {
+        *(.rodata);
+    }
+    .data : {
+        *(.data);
+    }
+    .bss : {
+        *(.bss);
+    }
+    /DISCARD/ : {
+        *(.eh_frame);
+        *(.comment);
+    }
+}
+
